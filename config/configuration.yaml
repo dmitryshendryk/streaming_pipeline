@@ -1,0 +1,23 @@
+
+clusters:
+  spark:
+    host: ''
+    username: ''
+    password: ''
+  kafka:
+    host: ''
+
+databases:
+    postfix: 3
+    cassandra:
+        dev:
+            host: '127.0.0.1'
+            username: 'sa'
+            password: 'reallyStrongPwd123'
+            db_name: ''
+        prod:
+            host: ''
+            username: ''
+            password: ''
+            db_name: ''
+    

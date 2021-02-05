@@ -1,4 +1,4 @@
-name: ihs
+name: str_pipe
 channels:
   - conda-forge
   - bioconda

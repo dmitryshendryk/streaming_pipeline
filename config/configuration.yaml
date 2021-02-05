@@ -5,7 +5,8 @@ clusters:
     username: ''
     password: ''
   kafka:
-    host: ''
+    host: 'localhost'
+    port: 9094
 
 databases:
     postfix: 3

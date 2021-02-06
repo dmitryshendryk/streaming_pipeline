@@ -1,26 +1,33 @@
 
+import logging
 import threading, time
-from kafka import KafkaConsumer
+import json
+
+from pyspark import SparkContext
+from pyspark.streaming import StreamingContext
+from pyspark.streaming.kafka import KafkaUtils
+
 
 class Consumer(threading.Thread):
     def __init__(self, host, port):
-        threading.Thread.__init__(self)
-        self.stop_event = threading.Event()
-        self.consumer = KafkaConsumer(bootstrap_servers=host + ':' + port,
-                                 auto_offset_reset='earliest',
-                                 consumer_timeout_ms=1000)
+        sc=SparkContext(appName='test')
+
+        self.ssc=StreamingContext(sc,batchDuration=20)
+        self.broker = host + ':' + port
+        
 
     def stop(self):
         self.stop_event.set()
 
     def run(self, topic):
+        logging.info('Run Consumer')
+        kvs=KafkaUtils.createDirectStream(self.ssc,[topic],kafkaParams={"metadata.broker.list":self.broker})
         
-        self.consumer.subscribe([topic])
 
-        while not self.stop_event.is_set():
-            for message in self.consumer:
-                print(message)
-                if self.stop_event.is_set():
-                    break
+        kvs.pprint()
+        lines=kvs.map(lambda x:'{},{},{},{}'.format(json.loads(x[1])['timestamp'],json.loads(x[1])['uid'],
+                                                json.loads(x[1])['heart_rate'],json.loads(x[1])['steps']))
+        # lines.foreachRDD(lambda rdd:rdd.foreach(logging.info(rdd)))
 
-        self.consumer.close()
+        self.ssc.start()
+        self.ssc.awaitTermination()

@@ -17,9 +17,9 @@ python main.py pipeline
 
 ### Kafka
 ```bash
-helm install my-release bitnami/kafka  --set externalAccess.enabled=true --set externalAccess.service.type=LoadBalancer --set externalAccess.service.port=9094 --set externalAccess.autoDiscovery.enabled=true --set serviceAccount.create=true --set rbac.create=true
+helm install kafka bitnami/kafka  --set externalAccess.enabled=true --set externalAccess.service.type=LoadBalancer --set externalAccess.service.port=9094 --set externalAccess.autoDiscovery.enabled=true --set serviceAccount.create=true --set rbac.create=true
 ```
 ### Cassandra
 ```bash
-helm install cassandra bitnami/cassandra
+helm install cassandra bitnami/cassandra  --set service.type=LoadBalancer
 ```

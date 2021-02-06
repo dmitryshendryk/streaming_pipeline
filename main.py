@@ -2,7 +2,7 @@ import os
 import sys
 import click
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from config.configurator import Configurator
 from src.kafka.streaming import StreamingPipeline
@@ -35,10 +35,8 @@ def service():
 def pipeline(context: click.core.Context):
     project_root = context.obj['PROJECT_ROOT']
     configurator = get_configurator(project_root)._configuration_data
-    kafka_host = configurator['clusters']['kafka']['host']
-    kafka_port = configurator['clusters']['kafka']['port']
-    st = StreamingPipeline(kafka_host, kafka_port, 'my_topic')
-    st.start_streaming()
+    st = StreamingPipeline(configurator)
+    st.start_streaming('my_topic')
     logging.info("Hello Spark and Cassandra")
 
 

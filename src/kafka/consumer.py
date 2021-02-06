@@ -7,13 +7,17 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 
+from src.db.mongodb.db_manager import MongoManager
 
 class Consumer(threading.Thread):
-    def __init__(self, host, port):
+    def __init__(self, configurator):
+        host = configurator['clusters']['kafka']['host']
+        port = configurator['clusters']['kafka']['port']
         sc=SparkContext(appName='test')
 
         self.ssc=StreamingContext(sc,batchDuration=20)
         self.broker = host + ':' + port
+        self.mongo = MongoManager(configurator)
         
 
     def stop(self):
@@ -27,7 +31,8 @@ class Consumer(threading.Thread):
         kvs.pprint()
         lines=kvs.map(lambda x:'{},{},{},{}'.format(json.loads(x[1])['timestamp'],json.loads(x[1])['uid'],
                                                 json.loads(x[1])['heart_rate'],json.loads(x[1])['steps']))
-        # lines.foreachRDD(lambda rdd:rdd.foreach(logging.info(rdd)))
+        
+        lines.foreachRDD(lambda rdd:rdd.foreach(self.mongo.insert_row))
 
         self.ssc.start()
         self.ssc.awaitTermination()

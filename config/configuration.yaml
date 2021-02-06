@@ -10,12 +10,13 @@ clusters:
 
 databases:
     postfix: 3
-    cassandra:
+    mongodb:
         dev:
-            host: '127.0.0.1'
-            username: 'sa'
-            password: 'reallyStrongPwd123'
+            host: 'localhost'
+            username: ''
+            password: ''
             db_name: ''
+            port: 27017
         prod:
             host: ''
             username: ''

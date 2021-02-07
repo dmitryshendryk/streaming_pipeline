@@ -10,12 +10,11 @@ from pyspark.streaming.kafka import KafkaUtils
 from src.db.mongodb.db_manager import MongoManager
 
 class Consumer(threading.Thread):
-    def __init__(self, configurator):
+    def __init__(self, configurator, context):
         host = configurator['clusters']['kafka']['host']
         port = configurator['clusters']['kafka']['port']
-        sc=SparkContext(appName='test')
 
-        self.ssc=StreamingContext(sc,batchDuration=20)
+        self.ssc=StreamingContext(context.sc,batchDuration=20)
         self.broker = host + ':' + port
         self.mongo = MongoManager(configurator)
         

@@ -8,7 +8,7 @@ from pykafka import KafkaClient
 
 
 class Producer(threading.Thread):
-    def __init__(self, configurator):
+    def __init__(self, configurator, sc):
         host = configurator['clusters']['kafka']['host']
         port = configurator['clusters']['kafka']['port']
         threading.Thread.__init__(self)

@@ -6,10 +6,10 @@ from src.kafka.producer import Producer
 
 
 class StreamingPipeline():
-    def __init__(self, configurator) -> None:
+    def __init__(self, configurator, sc) -> None:
         
-        self.producer = Producer(configurator)
-        self.consumer = Consumer(configurator)
+        self.producer = Producer(configurator, sc)
+        self.consumer = Consumer(configurator, sc)
         
     
 

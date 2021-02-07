@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 
 from config.configurator import Configurator
 from src.kafka.streaming import StreamingPipeline
+from src.spark.context import AppSparkContext
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars ' + os.path.join(os.getcwd(), 'libs/spark-streaming-kafka-0-8-assembly_2.11-2.4.6.jar') + ' pyspark-shell' 
 
@@ -29,15 +30,29 @@ def configure_logging(logging_format: str = 'Date-Time : %(asctime)s : Line No. 
 def service():
     """Group service"""
 
-
-@service.command(help='pipeline')
+# TODO for stream need specify topics which we will read, so we need create topics and stream
+# TODO check spark paralelling
+# TODO scale kafka 
+@service.command(help='stream_pipeline')
 @click.pass_context
-def pipeline(context: click.core.Context):
+def stream_pipeline(context: click.core.Context):
+    logging.info("Kafka -> Spark -> MongoDB")
     project_root = context.obj['PROJECT_ROOT']
     configurator = get_configurator(project_root)._configuration_data
-    st = StreamingPipeline(configurator)
+    context = AppSparkContext()
+    st = StreamingPipeline(configurator, context)
     st.start_streaming('my_topic')
-    logging.info("Hello Spark and Cassandra")
+    
+# TODO load heavy files and store to MongoDB
+# TODO get top 5 categories which contain most sold products month by month
+@service.command(help='io_pipeline')
+@click.pass_context
+def io_pipeline(context: click.core.Context):
+    logging.info("IO -> Spark -> MongoDB")
+    project_root = context.obj['PROJECT_ROOT']
+    context = AppSparkContext()
+    configurator = get_configurator(project_root)._configuration_data
+
 
 
 def main(env_variables: Optional[Dict[str, str]] = None) -> None:

@@ -16,10 +16,8 @@ databases:
             username: ''
             password: ''
             db_name: ''
-            port: 27017
-        prod:
-            host: ''
-            username: ''
-            password: ''
-            db_name: ''
-    
+            port: 27017   
+
+cron:
+  amount: 5
+  range: 'hours'

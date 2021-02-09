@@ -6,6 +6,8 @@ from pyspark.sql.functions import *
 import pyspark
 from pyspark import SparkConf, SparkContext
 from pyspark.sql.window import Window
+from pyspark.sql.functions import explode, from_unixtime, row_number, year, month
+
 import time
 
 
@@ -58,7 +60,7 @@ class SparkService():
 
 
 if __name__ == '__main__':
-    SparkInstance = SparkService('C:/Users/Egor_Pilat/Downloads/metadata/metadata.json', 'C:/Users/Egor_Pilat/Downloads/item_dedup/item_dedup.json')
+    SparkInstance = SparkService('/amazon/data/metadata.json.gz', '/amazon/data/item_dedup.json.gz')
     SparkInstance.initialize_params()
     SparkInstance.process_inquiries()
     ##here need to save

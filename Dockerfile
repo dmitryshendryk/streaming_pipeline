@@ -8,14 +8,6 @@ RUN apt-get update && apt-get install -y python-pip && \
 
 SHELL ["/bin/bash", "-c"]
 
-ARG COMMAND=etl
-ENV COMMAND ${COMMAND}
-
-ARG ENV_RUN=dev
-ENV ENV_RUN ${ENV_RUN}
-
-ARG PHASE=all
-ENV PHASE ${PHASE}
 
 COPY . /workspace/data
 

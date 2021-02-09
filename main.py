@@ -7,6 +7,7 @@ from typing import Dict, Optional, Tuple
 from config.configurator import Configurator
 from src.kafka.streaming import StreamingPipeline
 from src.spark.context import AppSparkContext
+from src.cron.manager import CronTab
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars ' + os.path.join(os.getcwd(), 'libs/spark-streaming-kafka-0-8-assembly_2.11-2.4.6.jar') + ' pyspark-shell' 
 
@@ -31,7 +32,7 @@ def service():
     """Group service"""
 
 # TODO for stream need specify topics which we will read, so we need create topics and stream
-# TODO check spark paralelling
+# TODO check spark paralelling  - done
 # TODO scale kafka 
 @service.command(help='stream_pipeline')
 @click.pass_context
@@ -42,16 +43,37 @@ def stream_pipeline(context: click.core.Context):
     context = AppSparkContext()
     st = StreamingPipeline(configurator, context)
     st.start_streaming('my_topic')
-    
-# TODO load heavy files and store to MongoDB
-# TODO get top 5 categories which contain most sold products month by month
+    context.stop_spark_context()
+
+def job():
+    print("I'm working...")
+
+# TODO load heavy files and store to MongoDB - done
+# TODO get top 5 categories which contain most sold products month by month - done
+# TODO  create cron job  - done
+# TODO put mondo and spark in kubernetis
+# TODO build docker image and run it 
 @service.command(help='io_pipeline')
 @click.pass_context
-def io_pipeline(context: click.core.Context):
+@click.option('--cron', default='', help='Enable cron job')
+def io_pipeline(context: click.core.Context, cron: bool):
     logging.info("IO -> Spark -> MongoDB")
     project_root = context.obj['PROJECT_ROOT']
-    context = AppSparkContext()
     configurator = get_configurator(project_root)._configuration_data
+    context = AppSparkContext('/amazon/data/metadata.json.gz', '/amazon/data/item_dedup.json.gz', configurator)
+    context.initialize_params()
+    
+    if cron:
+        CronTab(context.process_inquiries, configurator).start()
+    
+    ### TEST PIPELINE
+    # df = context.read_file('/amazon/data/metadata.json.gz')
+    # df = df.limit(10)
+    # context.save(df, 'mydb','spark')
+
+    #### MAIN PIPELINE 
+    # context.process_inquiries()
+    # context.stop_spark_context()
 
 
 

@@ -14,7 +14,7 @@ class Consumer(threading.Thread):
         host = configurator['clusters']['kafka']['host']
         port = configurator['clusters']['kafka']['port']
 
-        self.ssc=StreamingContext(context.sc,batchDuration=20)
+        self.ssc=StreamingContext(context.session.sparkContext,batchDuration=20)
         self.broker = host + ':' + port
         self.mongo = MongoManager(configurator)
         

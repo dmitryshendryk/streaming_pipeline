@@ -31,6 +31,19 @@ def configure_logging(logging_format: str = 'Date-Time : %(asctime)s : Line No. 
 def service():
     """Group service"""
 
+## MAJOR TASKS
+# TODO Proper exception handling/logging for bulletproof runs (3 times a day) - done
+# TODO Expressive, re-usable, clean code - done
+# TODO Remarks / Comments of those parts (optimization) where you could speed up execution and/or save network traffic
+# TODO handle duplicates. - Structure Streaming  
+# TODO download the source data from the pipeline itself and have the ability to do the same at regular intervals. 
+# TODO use some scheduling framework or workflow platform. - done
+# TODO use containers. 
+# TODO handle partial downloads and failures at getting the source data. - done (handled by Spark)
+# TODO be scalable in case new data were to flow in on a high-volume basis(10x bigger) and has to be imported at a higher frequency.
+# TODO be able to handle the JSON files as a stream/ abstract the file reading into a streaming model.
+# TODO describe the data store and tools used to query it - including the presentation layer.
+
 # TODO for stream need specify topics which we will read, so we need create topics and stream
 # TODO check spark paralelling  - done
 # TODO scale kafka 
@@ -40,7 +53,7 @@ def stream_pipeline(context: click.core.Context):
     logging.info("Kafka -> Spark -> MongoDB")
     project_root = context.obj['PROJECT_ROOT']
     configurator = get_configurator(project_root)._configuration_data
-    context = AppSparkContext()
+    context = AppSparkContext('/amazon/data/metadata.json.gz', '/amazon/data/item_dedup.json.gz', configurator)
     st = StreamingPipeline(configurator, context)
     st.start_streaming('my_topic')
     context.stop_spark_context()
@@ -53,6 +66,7 @@ def job():
 # TODO  create cron job  - done
 # TODO put mondo and spark in kubernetis
 # TODO build docker image and run it 
+# TODO handle duplicates
 @service.command(help='io_pipeline')
 @click.pass_context
 @click.option('--cron', default='', help='Enable cron job')

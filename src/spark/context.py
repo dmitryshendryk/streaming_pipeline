@@ -17,9 +17,9 @@ class AppSparkContext():
         self.metadata_path = metadata_path
         self.review_path = review_path
         self.mongo = MongoManager(configurator)
-        self.session = None
-
-    def initialize_params(self, partitions = 2100, cores = 5, memory = 11):
+        partitions = 2100
+        cores = 5
+        memory = 11
         logging.info('Initialize Params')
         conf = SparkConf()
         working_directory = os.path.join(os.getcwd(), 'libs/jars/*') 
@@ -32,17 +32,16 @@ class AppSparkContext():
         conf.set("spark.mongodb.input.uri", "mongodb://127.0.0.1/mydb.myCollection")
         conf.set("spark.driver.extraClassPath", working_directory)
 
-        # conf = pyspark.SparkConf().setAll([('spark.executor.memory', '8g'), ('spark.executor.cores', '3'), ('spark.cores.max', '3'), ('spark.driver.memory','8g')])
+        try:
+            self.session = SparkSession.builder \
+                                    .appName("myApp") \
+                                    .config(conf=conf) \
+                                    .getOrCreate()
+        except Exception as e:
+            logging.info('Session creation failed %s', e)
 
-        self.session = SparkSession.builder \
-                                   .appName("myApp") \
-                                   .config(conf=conf) \
-                                   .getOrCreate()
-        logging.info('Session Created ')
-        # SparkContext.setSystemProperty('spark.executor.memory', str(memory) + 'g')
-        # SparkContext.setSystemProperty('spark.driver.memory', str(memory) + 'g')
-        # self.sc = SparkContext(appName='mm_exp', conf=conf).getOrCreate()
-        # self.sqlContext = pyspark.SQLContext(self.sc)
+    def initialize_params(self, partitions = 2100, cores = 5, memory = 11):
+        pass
 
     def process_inquiries(self):
         logging.info("Start pipeline")
@@ -50,6 +49,7 @@ class AppSparkContext():
         review = self.session.read.json(self.review_path)
         logging.info("Reading metadata")
         metadata = self.session.read.json(self.metadata_path)
+        logging.info("Processing")
         review_transform_date = review.select('asin', 'overall', 'unixReviewTime').withColumn("unixReviewTime", from_unixtime("unixReviewTime"))
         review_date_decompose = review_transform_date.withColumn("month", month("unixReviewTime")).withColumn("year", year("unixReviewTime"))
         metadata_flatten_categories = metadata.select('asin', explode('categories')).select('asin', explode('col'))
@@ -63,10 +63,10 @@ class AppSparkContext():
         filter_patrions.unpersist()
         result_groupby = result_inner.groupBy('year', 'month', 'col').avg('overall').orderBy('year', 'month', ascending=True)
         result_groupby.show()
+        logging.info("Finished")
         self.save(result_groupby, 'mydb', 'myset')
     
     def read_file(self, path):
-        print(self.session)
         df = self.session.read.json(path)
         return df
 

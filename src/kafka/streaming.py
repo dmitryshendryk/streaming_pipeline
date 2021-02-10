@@ -1,4 +1,5 @@
-import time
+import pandas as pd
+import os
 
 
 from src.kafka.consumer import Consumer
@@ -14,5 +15,13 @@ class StreamingPipeline():
     
 
     def start_streaming(self, topic):
-        self.producer.run(topic)
+        metadata = pd.read_csv(os.path.join(os.getcwd(), 'notebooks/metadata_cutted.csv'))
+        review = pd.read_csv(os.path.join(os.getcwd(), 'notebooks/review_data_cutted.csv'))
+        metadata = metadata.head(1)
+        review = review.head(1)
+        input_data = {
+            'metadata': metadata.to_json(orient="split", index=False),
+            'review': review.to_json(orient="split", index=False)
+        }
+        self.producer.run(topic, input_data)
         self.consumer.run(topic)

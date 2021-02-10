@@ -11,15 +11,14 @@ from pyspark import SparkConf, SparkContext
 from pyspark.sql.window import Window
 from pyspark.sql.functions import explode, from_unixtime, row_number, year, month
 from src.db.mongodb.db_manager import MongoManager
+from config.configurator import Configurator
 
 class AppSparkContext():
-    def __init__(self, metadata_path, review_path, configurator):
-        self.metadata_path = metadata_path
-        self.review_path = review_path
+    def __init__(self, configurator: Configurator):
         self.mongo = MongoManager(configurator)
-        partitions = 2100
-        cores = 5
-        memory = 11
+        partitions = configurator['clusters']['spark']['partitions']
+        cores = configurator['clusters']['spark']['cores']
+        memory = configurator['clusters']['spark']['memory']
         logging.info('Initialize Params')
         conf = SparkConf()
         working_directory = os.path.join(os.getcwd(), 'libs/jars/*') 
@@ -40,15 +39,9 @@ class AppSparkContext():
         except Exception as e:
             logging.info('Session creation failed %s', e)
 
-    def initialize_params(self, partitions = 2100, cores = 5, memory = 11):
-        pass
-
-    def process_inquiries(self):
+    def process_inquiries(self, review, metadata):
         logging.info("Start pipeline")
-        logging.info("Reading review data")
-        review = self.session.read.json(self.review_path)
-        logging.info("Reading metadata")
-        metadata = self.session.read.json(self.metadata_path)
+
         logging.info("Processing")
         review_transform_date = review.select('asin', 'overall', 'unixReviewTime').withColumn("unixReviewTime", from_unixtime("unixReviewTime"))
         review_date_decompose = review_transform_date.withColumn("month", month("unixReviewTime")).withColumn("year", year("unixReviewTime"))
@@ -67,6 +60,7 @@ class AppSparkContext():
         self.save(result_groupby, 'mydb', 'myset')
     
     def read_file(self, path):
+        logging.info("Reading data")
         df = self.session.read.json(path)
         return df
 

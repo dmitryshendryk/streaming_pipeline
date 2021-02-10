@@ -36,13 +36,13 @@ def service():
 # TODO Expressive, re-usable, clean code - done
 # TODO Remarks / Comments of those parts (optimization) where you could speed up execution and/or save network traffic
 # TODO handle duplicates. - Structure Streaming  
-# TODO download the source data from the pipeline itself and have the ability to do the same at regular intervals. 
+# TODO download the source data from the pipeline itself and have the ability to do the same at regular intervals. - done
 # TODO use some scheduling framework or workflow platform. - done
 # TODO use containers. 
 # TODO handle partial downloads and failures at getting the source data. - done (handled by Spark)
 # TODO be scalable in case new data were to flow in on a high-volume basis(10x bigger) and has to be imported at a higher frequency.
 # TODO be able to handle the JSON files as a stream/ abstract the file reading into a streaming model.
-# TODO describe the data store and tools used to query it - including the presentation layer.
+# TODO describe the data store and tools used to query it - including the presentation layer. - done
 
 # TODO for stream need specify topics which we will read, so we need create topics and stream
 # TODO check spark paralelling  - done
@@ -53,18 +53,16 @@ def stream_pipeline(context: click.core.Context):
     logging.info("Kafka -> Spark -> MongoDB")
     project_root = context.obj['PROJECT_ROOT']
     configurator = get_configurator(project_root)._configuration_data
-    context = AppSparkContext('/amazon/data/metadata.json.gz', '/amazon/data/item_dedup.json.gz', configurator)
+    context = AppSparkContext(configurator)
     st = StreamingPipeline(configurator, context)
     st.start_streaming('my_topic')
     context.stop_spark_context()
 
-def job():
-    print("I'm working...")
 
 # TODO load heavy files and store to MongoDB - done
 # TODO get top 5 categories which contain most sold products month by month - done
 # TODO  create cron job  - done
-# TODO put mondo and spark in kubernetis
+# TODO put mondo  in kubernetis
 # TODO build docker image and run it 
 # TODO handle duplicates
 @service.command(help='io_pipeline')
@@ -74,9 +72,10 @@ def io_pipeline(context: click.core.Context, cron: bool):
     logging.info("IO -> Spark -> MongoDB")
     project_root = context.obj['PROJECT_ROOT']
     configurator = get_configurator(project_root)._configuration_data
-    context = AppSparkContext('/amazon/data/metadata.json.gz', '/amazon/data/item_dedup.json.gz', configurator)
-    context.initialize_params()
+    context = AppSparkContext(configurator)
     
+
+    # TODO pass params
     if cron:
         CronTab(context.process_inquiries, configurator).start()
     
@@ -84,10 +83,13 @@ def io_pipeline(context: click.core.Context, cron: bool):
     # df = context.read_file('/amazon/data/metadata.json.gz')
     # df = df.limit(10)
     # context.save(df, 'mydb','spark')
-
+    
+    #### READIN DATA
+    metadata = context.read_file('/amazon/data/metadata.json.gz')
+    review = context.read_file('/amazon/data/item_dedup.json.gz')
     #### MAIN PIPELINE 
-    # context.process_inquiries()
-    # context.stop_spark_context()
+    context.process_inquiries(review, metadata)
+    context.stop_spark_context()
 
 
 

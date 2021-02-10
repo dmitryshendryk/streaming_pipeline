@@ -4,6 +4,9 @@ clusters:
     host: ''
     username: ''
     password: ''
+    partitions:  2100
+    cores: 5
+    memory: 11
   kafka:
     host: 'localhost'
     port: '9094'

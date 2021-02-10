@@ -1,5 +1,6 @@
 import logging
-import threading, time
+import threading
+import time
 import json
 import random
 import pandas as pd
@@ -7,10 +8,12 @@ import os
 
 from pykafka import KafkaClient
 
+from config.configurator import Configurator
+from src.spark.context import AppSparkContext
 
 
 class Producer(threading.Thread):
-    def __init__(self, configurator, sc):
+    def __init__(self, configurator: Configurator, sc: AppSparkContext):
         host = configurator['clusters']['kafka']['host']
         port = configurator['clusters']['kafka']['port']
         threading.Thread.__init__(self)
@@ -25,6 +28,7 @@ class Producer(threading.Thread):
         topic = self.client.topics[bytes(topic, encoding='utf-8')]
         producer = topic.get_producer()
         num_user = 2
+
         def work():
             while True:
                 msg = json.dumps(data)
@@ -32,11 +36,7 @@ class Producer(threading.Thread):
                 producer.produce(bytes(msg, encoding='utf-8'))
                 time.sleep(20)
 
-
         thread_list = [threading.Thread(target=work) for i in range(num_user)]
         for thread in thread_list:
             thread.setDaemon(True)
             thread.start()
-
-       
-

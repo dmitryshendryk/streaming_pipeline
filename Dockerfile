@@ -3,7 +3,6 @@ FROM continuumio/miniconda3
 WORKDIR /workspace/data
 
 RUN apt-get update && apt-get install -y python-pip && \
-    apt-get install -y unixodbc unixodbc-dev && \
     apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 SHELL ["/bin/bash", "-c"]

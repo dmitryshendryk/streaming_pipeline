@@ -1,8 +1,6 @@
 import logging
 import os
 
-import pymongo
-from pymongo import MongoClient
 from pyspark.sql import SparkSession
 import pyspark
 

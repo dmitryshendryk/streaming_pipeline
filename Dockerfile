@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y python-pip && \
 SHELL ["/bin/bash", "-c"]
 
 
+ARG COMMAND=io-pipeline
+ENV COMMAND ${COMMAND}
+
 COPY . /workspace/data
 
 RUN conda update -n base -c defaults conda && \ 
@@ -19,3 +22,4 @@ RUN conda update -n base -c defaults conda && \
 RUN echo "source activate ihs" > ~/.bashrc
 ENV PATH /opt/conda/envs/ihs/bin:$PATH
 
+CMD python /workspace/data/main.py ${COMMAND} 

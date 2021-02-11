@@ -15,7 +15,7 @@ databases:
     postfix: 3
     mongodb:
         dev:
-            host: 'localhost'
+            host: '127.0.0.1'
             username: ''
             password: ''
             db_name: ''

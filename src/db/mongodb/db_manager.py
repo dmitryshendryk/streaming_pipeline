@@ -21,7 +21,7 @@ class MongoManager():
             df.write.format("com.mongodb.spark.sql.DefaultSource") \
                 .option("database", database) \
                 .option("collection", collection) \
-                .mode("append").save()
+                .mode("overwrite").save()
 
         except Exception as e:
             logging.error('Insert spark error %s', e)

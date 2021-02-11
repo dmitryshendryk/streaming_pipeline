@@ -68,7 +68,7 @@ class AppSparkContext():
             'overall').orderBy('year', 'month', ascending=True)
         result_groupby.show()
         logging.info("Finished")
-        self.save(result_groupby, 'mydb', 'myset')
+        self.upsert_database(result_groupby, 'mydb', 'myset')
 
     def read_file(self, path: str) -> pyspark.sql.DataFrame:
         logging.info("Reading data")
@@ -80,6 +80,32 @@ class AppSparkContext():
 
     def stop_spark_context(self):
         self.session.stop()
+
+    def upsert_database(self, streaming_dataframe: pyspark.sql.DataFrame, db: str, collection: str) -> None:
+        previous_database = self.mongo.query_spark_df(self.session, db, collection)
+
+        if previous_database.take(1):
+            df = self.drop_duplicates(previous_database, streaming_dataframe)
+
+        else:
+            df = streaming_dataframe
+
+        self.save(df, db, collection)
+
+    @staticmethod
+    def drop_duplicates(self, previous_database, streaming_dataframe) -> pyspark.sql.DataFrame:
+        logging.info("Drop duplicates")
+
+        try:
+
+            previous_database = previous_database.select('year', 'month', 'col', 'rating')
+            anti_left_join = previous_database.join(streaming_dataframe, ['year', 'month', 'col'], "leftanti")
+            distinct_dataframe = anti_left_join.union(streaming_dataframe)
+
+        except Exception as e:
+            logging.error('Drop duplicates error %s', e)
+
+        return distinct_dataframe
 
     @staticmethod
     def get_partitions() -> None:

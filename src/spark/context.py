@@ -65,7 +65,7 @@ class AppSparkContext():
         patrions.unpersist()
         filter_patrions.unpersist()
         result_groupby = result_inner.groupBy('year', 'month', 'col').avg(
-            'overall').orderBy('year', 'month', ascending=True)
+            'overall').alias('rating').orderBy('year', 'month', ascending=True)
         result_groupby.show()
         logging.info("Finished")
         self.upsert_database(result_groupby, 'mydb', 'myset')
